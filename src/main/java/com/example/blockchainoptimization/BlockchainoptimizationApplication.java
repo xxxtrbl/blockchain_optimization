@@ -1,6 +1,7 @@
 package com.example.blockchainoptimization;
 
 import com.example.blockchainoptimization.beans.Block;
+import com.example.blockchainoptimization.beans.Blockchain;
 import com.example.blockchainoptimization.util.BlockchainUtils;
 import com.example.blockchainoptimization.util.RocksDBUtils;
 import org.springframework.boot.SpringApplication;
@@ -21,8 +22,8 @@ public class BlockchainoptimizationApplication {
 
     public static void main(String[] args) throws Exception{
         SpringApplication.run(BlockchainoptimizationApplication.class, args);
+        Blockchain.getInstance();
         blocks = BlockchainUtils.initBlockchain();
         Collections.reverse(blocks);
     }
-
 }

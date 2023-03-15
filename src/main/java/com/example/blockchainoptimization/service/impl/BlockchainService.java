@@ -7,6 +7,7 @@ import com.example.blockchainoptimization.util.BlockchainIterator;
 import com.example.blockchainoptimization.util.BlockchainUtils;
 import com.example.blockchainoptimization.util.EncryptionUtils;
 import com.google.gson.GsonBuilder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,8 @@ import java.util.List;
 @Slf4j
 @Service
 public class BlockchainService implements IBlockchainService {
-    private List<TransactionInfo> transactionInfoList;
+    @Getter
+    private List<TransactionInfo> transactionInfoList = new ArrayList<>();
 
     @Override
     public void addTransaction(Transaction transaction) throws Exception {
@@ -36,12 +38,15 @@ public class BlockchainService implements IBlockchainService {
 
     private void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
         if (BlockchainUtils.isBlockchainValid()){
-            Block newBlock = new Block(Blockchain.getInstance().getLastBlockHash(),transactionInfoList);
+            ArrayList<Block> blocks = BlockchainoptimizationApplication.blocks;
+            String previousBlockHash = blocks.get(blocks.size()-1).getBlockHash();
+
+            Block newBlock = new Block(previousBlockHash,transactionInfoList);
             Blockchain.addNewBlock(newBlock);
             BlockchainoptimizationApplication.blocks.add(newBlock);
             log.info("Successfully added a new BLOCK！");
         }else{
-            log.info("Blockchain is not valid, please check the integrity of the blockchain.");
+            log.error("Blockchain is not valid, please check the integrity of the blockchain.");
         }
     }
 

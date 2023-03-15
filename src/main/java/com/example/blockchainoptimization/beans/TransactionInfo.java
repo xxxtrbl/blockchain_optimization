@@ -3,6 +3,8 @@ package com.example.blockchainoptimization.beans;
 import cn.hutool.crypto.digest.DigestUtil;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -11,7 +13,9 @@ import java.util.Date;
  * @author xiyuanwang
  */
 @Data
-public class TransactionInfo {
+public class TransactionInfo implements Serializable {
+    @Serial
+    private static final long serialVersionUID = -4109147656476546391L;
     private String data;
     private Long timeStamp;
     private byte[] signature;

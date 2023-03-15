@@ -2,6 +2,8 @@ package com.example.blockchainoptimization.beans;
 
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -10,7 +12,9 @@ import java.util.List;
  * @author xiyuanwang
  */
 @Data
-public class BlockBody {
+public class BlockBody implements Serializable {
+    @Serial
+    private static final long serialVersionUID = -6863435702084925881L;
     private List<TransactionInfo> transactionInfoList;
 
     public BlockBody(List<TransactionInfo> transactionInfoList) {

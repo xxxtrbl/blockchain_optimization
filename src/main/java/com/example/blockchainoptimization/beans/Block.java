@@ -4,6 +4,8 @@ import cn.hutool.crypto.digest.DigestUtil;
 import com.example.blockchainoptimization.util.EncryptionUtils;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,14 +15,16 @@ import java.util.List;
  * @author xiyuanwang
  */
 @Data
-public class Block {
+public class Block implements Serializable{
+    @Serial
+    private static final long serialVersionUID = -6435421364657052620L;
     private BlockHeader blockHeader;
     private BlockBody blockBody;
     private String blockHash;
 
     public Block(String previousHash, List<TransactionInfo> transactionInfoList){
-        BlockHeader header = new BlockHeader(previousHash,transactionInfoList);
-        BlockBody blockBody = new BlockBody(transactionInfoList);
+        this.blockHeader = new BlockHeader(previousHash,transactionInfoList);
+        this.blockBody = new BlockBody(transactionInfoList);
         this.blockHash = this.generateBlockHash();
     }
 
@@ -38,6 +42,6 @@ public class Block {
         List<TransactionInfo> transactionInfoList = new ArrayList<TransactionInfo>();
         transactionInfoList.add(info);
 
-        return new Block("0",transactionInfoList);
+        return new Block(String.valueOf(0),transactionInfoList);
     }
 }

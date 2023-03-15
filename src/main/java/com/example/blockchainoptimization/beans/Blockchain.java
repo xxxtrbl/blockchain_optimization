@@ -4,14 +4,19 @@ import com.example.blockchainoptimization.util.RocksDBUtils;
 import io.micrometer.common.util.StringUtils;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 /**
  * BLOCKCHAIN, a chain of block.
  *
  * @author xiyuanwang
  */
 @Data
-public class Blockchain {
-    private String lastBlockHash;
+public class Blockchain implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 364274477070717537L;
+    private static String lastBlockHash;
     private static volatile Blockchain instance;
 
     private Blockchain(String lastBlockHash) {
@@ -33,6 +38,6 @@ public class Blockchain {
         String lastBlockHash = newBlock.getBlockHash();
         RocksDBUtils.getInstance().putBlock(newBlock);
         RocksDBUtils.getInstance().putLastBlockHash(lastBlockHash);
-        Blockchain.getInstance().lastBlockHash = lastBlockHash;
+        Blockchain.lastBlockHash = lastBlockHash;
     }
 }

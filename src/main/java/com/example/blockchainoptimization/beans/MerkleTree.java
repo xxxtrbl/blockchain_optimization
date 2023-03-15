@@ -2,6 +2,8 @@ package com.example.blockchainoptimization.beans;
 
 import cn.hutool.crypto.digest.DigestUtil;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +12,10 @@ import java.util.List;
  *
  * @author xiyuanwang
  */
-public class MerkleTree {
+public class MerkleTree implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 2855342716633101459L;
+
     /**
      * Calculate the hash of the tree root.
      * @param hashList : the transaction hash list of a block

@@ -18,19 +18,32 @@ public class BlockchainIterator {
         if(StringUtils.isBlank(currentBlockHash)){
             return false;
         }
+
         if(currentBlock==null){
             return false;
         }
-        if(currentBlock.getBlockHeader().getHashPreviousBlock()=="0"){
+
+        if(currentBlock.getBlockHeader().getHashPreviousBlock().equals(String.valueOf(0))){
             return false;
         }
 
         String hashPreviousBlock = currentBlock.getBlockHeader().getHashPreviousBlock();
-        return RocksDBUtils.getInstance().getBlock(hashPreviousBlock)!=null;
+        return RocksDBUtils.getInstance().getBlock(hashPreviousBlock) != null;
+    }
+
+    public boolean exists() throws Exception{
+        return !StringUtils.isBlank(currentBlockHash) && (currentBlock!=null);
     }
 
     public void getNextBlock() throws Exception {
         String hashPreviousBlock = currentBlock.getBlockHeader().getHashPreviousBlock();
+
+        if (hashPreviousBlock.equals(String.valueOf(0))){
+            currentBlock = null;
+            currentBlockHash = null;
+            return;
+        }
+
         currentBlock = RocksDBUtils.getInstance().getBlock(hashPreviousBlock);
         if (currentBlock != null){
             this.currentBlockHash = currentBlock.getBlockHash();

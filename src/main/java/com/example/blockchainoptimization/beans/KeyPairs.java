@@ -2,12 +2,17 @@ package com.example.blockchainoptimization.beans;
 
 import com.example.blockchainoptimization.util.RocksDBUtils;
 import lombok.Data;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 
 @Data
-public class KeyPairs {
+public class KeyPairs implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1747446376774496469L;
     private PrivateKey privateKey;
     private PublicKey publicKey;
     private volatile static KeyPairs keyPairs;
@@ -15,7 +20,8 @@ public class KeyPairs {
     public static KeyPairs getKeyPair() throws Exception{
         synchronized (KeyPairs.class){
              if(keyPairs==null){
-                keyPairs = new KeyPairs();
+                 Security.addProvider(new BouncyCastleProvider());
+                 keyPairs = new KeyPairs();
             }
             else{
                 keyPairs = RocksDBUtils.getInstance().getKeyPair();
