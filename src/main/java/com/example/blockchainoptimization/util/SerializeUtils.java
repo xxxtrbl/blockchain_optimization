@@ -17,19 +17,19 @@ public class SerializeUtils {
     private static KryoUtils kryoUtils = new KryoUtils();
 
     public static Object deserialize(byte[] bytes){
-        Input input = new Input(bytes);
         kryoUtils.setRegistrationRequired(false);
-        kryoUtils.setReferences(true);
+        Input input = new Input(bytes);
+        kryoUtils.setReferences(false);
         Object obj = kryoUtils.readClassAndObject(input);
         input.close();
         return obj;
     }
 
     public static byte[] serialize(Object object){
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        Output output = new Output(bos);
         kryoUtils.setRegistrationRequired(false);
-        kryoUtils.setReferences(true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Output output = new Output(baos,10000000);
+        kryoUtils.setReferences(false);
         kryoUtils.writeClassAndObject(output,object);
         byte[] bytes = output.toBytes();
         output.close();

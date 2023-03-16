@@ -1,5 +1,6 @@
 package com.example.blockchainoptimization.beans;
 
+import com.example.blockchainoptimization.util.KeypairUtils;
 import com.example.blockchainoptimization.util.RocksDBUtils;
 import lombok.Data;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -19,14 +20,16 @@ public class KeyPairs implements Serializable {
 
     public static KeyPairs getKeyPair() throws Exception{
         synchronized (KeyPairs.class){
-             if(keyPairs==null){
-                 Security.addProvider(new BouncyCastleProvider());
-                 keyPairs = new KeyPairs();
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+            KeypairUtils keypairUtils = new KeypairUtils();
+            if(keypairUtils.getObject() != null){
+                keyPairs = keypairUtils.getObject();
+                return keyPairs;
+            }else{
+                keyPairs = new KeyPairs();
+                keypairUtils.saveObject(keyPairs);
+                return keyPairs;
             }
-            else{
-                keyPairs = RocksDBUtils.getInstance().getKeyPair();
-            }
-            return keyPairs;
         }
     }
 

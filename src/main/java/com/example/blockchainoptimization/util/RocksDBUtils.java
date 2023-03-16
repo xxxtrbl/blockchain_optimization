@@ -102,16 +102,6 @@ public class RocksDBUtils {
         return block;
     }
 
-    public void putKeyPair(KeyPairs keyPairs) throws Exception{
-        byte[] key = SerializeUtils.serialize(KEYPAIR_PREFIX);
-        rocksDB.put(key,SerializeUtils.serialize(keyPairs));
-    }
-
-    public KeyPairs getKeyPair() throws Exception{
-        byte[] key = SerializeUtils.serialize(KEYPAIR_PREFIX);
-        return  (KeyPairs) SerializeUtils.deserialize(key);
-    }
-
     public void closeRocksDB(){
         try {
             rocksDB.close();

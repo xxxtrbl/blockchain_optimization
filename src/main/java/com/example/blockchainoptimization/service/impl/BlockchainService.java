@@ -39,8 +39,12 @@ public class BlockchainService implements IBlockchainService {
     private void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
         if (BlockchainUtils.isBlockchainValid()){
             ArrayList<Block> blocks = BlockchainoptimizationApplication.blocks;
-            String previousBlockHash = blocks.get(blocks.size()-1).getBlockHash();
+            int count = blocks.size();
+            if (count < 1){
+                return;
+            }
 
+            String previousBlockHash = blocks.get(blocks.size()-1).getBlockHash();
             Block newBlock = new Block(previousBlockHash,transactionInfoList);
             Blockchain.addNewBlock(newBlock);
             BlockchainoptimizationApplication.blocks.add(newBlock);

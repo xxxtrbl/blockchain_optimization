@@ -1,6 +1,9 @@
 package com.example.blockchainoptimization.service.impl;
 
 import cn.hutool.core.lang.Assert;
+import com.example.blockchainoptimization.BlockchainoptimizationApplication;
+import com.example.blockchainoptimization.beans.Block;
+import com.example.blockchainoptimization.beans.Blockchain;
 import com.example.blockchainoptimization.beans.Transaction;
 import com.example.blockchainoptimization.beans.TransactionInfo;
 import org.junit.jupiter.api.AfterEach;
@@ -37,15 +40,20 @@ class BlockchainServiceTest {
     void findTransactionSlowly() {
         ArrayList<Transaction> fiveTransactions = new ArrayList<>();
 
-        for(int i=10;i<=50;i++){
+        for(int i=10;i<=50;i+=10){
             Transaction transaction = new Transaction("tony","lily",i);
             fiveTransactions.add(transaction);
         }
 
         try{
+            Block mockGenesisBlock = Block.createGenesisBlock();
+            BlockchainoptimizationApplication.blocks = new ArrayList<Block>();
+            BlockchainoptimizationApplication.blocks.add(mockGenesisBlock);
+
             for(Transaction transaction:fiveTransactions){
                 blockchainService.addTransaction(transaction);
             }
+
             TransactionInfo targetTransaction = blockchainService.getTransactionInfoList().get(0);
             TransactionInfo outcome = blockchainService.findTransactionSlowly(targetTransaction.getHash());
             Assert.equals(targetTransaction,outcome);
