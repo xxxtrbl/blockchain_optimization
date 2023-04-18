@@ -20,7 +20,6 @@ public class RocksDBUtils {
     private static final String DB_FILE = "blockchain.db";
     private static final String BLOCKS_BUCKET_PREFIX = "blocks_";
     private static final String LAST_BLOCK_KEY = "l";
-    private static final String KEYPAIR_PREFIX = "keypair_";
     private volatile static RocksDBUtils instance;
     @Getter
     private RocksDB rocksDB;

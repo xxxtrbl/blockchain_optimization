@@ -3,16 +3,16 @@ package com.example.blockchainoptimization.service.impl;
 import com.example.blockchainoptimization.BlockchainoptimizationApplication;
 import com.example.blockchainoptimization.beans.*;
 import com.example.blockchainoptimization.service.IBlockchainService;
-import com.example.blockchainoptimization.util.BlockchainIterator;
-import com.example.blockchainoptimization.util.BlockchainUtils;
-import com.example.blockchainoptimization.util.EncryptionUtils;
+import com.example.blockchainoptimization.util.*;
 import com.google.gson.GsonBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -20,20 +20,42 @@ import java.util.List;
 public class BlockchainService implements IBlockchainService {
     @Getter
     private List<TransactionInfo> transactionInfoList = new ArrayList<>();
+    @Autowired
+    private RedisUtils redisUtils;
 
     @Override
-    public void addTransaction(Transaction transaction) throws Exception {
-        /**
-         * Create transactionInfo and sign.
-         */
+    public String addTransaction(Transaction transaction) throws Exception {
+
         String data = new GsonBuilder().setPrettyPrinting().create().toJson(transaction);
         byte[] signature = EncryptionUtils.applyECDSASig(KeyPairs.getKeyPair().getPrivateKey(), data);
         TransactionInfo transactionInfo = new TransactionInfo(data,signature);
         transactionInfoList.add(transactionInfo);
+        log.info("Successfully added a transaction!");
 
+        // [CACHE] Add into cache, which will be deleted after the block is added.
+        redisUtils.hset("BLOCK",transactionInfo.getHash(), transactionInfo);
+        // [STATISTICS] Add transaction into set to record its timestamp.
+        long timestamp = new Date().getTime();
+        redisUtils.zAdd("TRANSACTION",transactionInfo.getHash(),(double)timestamp);
+
+        // Add block.
         if (transactionInfoList.size() == 5){
-            addBlock(transactionInfoList);
+            List<TransactionInfo> transactionInfos = new ArrayList<>(transactionInfoList);
+            addBlock(transactionInfos);
+
+            // [INDEX] Add into indexTree.
+            int size = BlockchainoptimizationApplication.blocks.size();
+            BSTNode newNode = new BSTNode(size-1,BlockchainoptimizationApplication.blocks.get(size-1).getBlockHeader().getTimeStamp());
+            BlockchainoptimizationApplication.indexTree.add(newNode);
+
+            // Delete useless data.
+            redisUtils.del("BLOCK");
+            transactionInfoList.clear();
+
+            log.info("Successfully added into a block!");
         }
+
+        return transactionInfo.getHash();
     }
 
     private void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
@@ -62,7 +84,7 @@ public class BlockchainService implements IBlockchainService {
      */
     @Override
     public TransactionInfo findTransactionSlowly(String hashTransaction) throws Exception {
-        TransactionInfo outcome = null;
+        TransactionInfo outcome = new TransactionInfo();
 
         for (int i = BlockchainoptimizationApplication.blocks.size()-1;i>=0;i--){
             Block currentBlock = BlockchainoptimizationApplication.blocks.get(i);
@@ -79,13 +101,27 @@ public class BlockchainService implements IBlockchainService {
     }
 
     /**
-     *
+     * Query version with optimization like cache and merkle tree.
      * @param hashTransaction
      * @return
      * @throws Exception
      */
     @Override
     public TransactionInfo findTransactionFast(String hashTransaction) throws Exception {
-        return null;
+        // Find in cache firstly.
+        Object object =  redisUtils.hget("BLOCK",hashTransaction);
+        TransactionInfo outcome = (TransactionInfo) object;
+
+        // Check out the timestamp, block index and find the target transaction.
+        if(outcome == null){
+            Long timestamp = Double.doubleToLongBits(redisUtils.zGet("TRANSACTION",hashTransaction));
+            BSTNode node = BlockchainoptimizationApplication.indexTree.findNode(timestamp);
+
+            int index = node.getIndex();
+            Block block = BlockchainoptimizationApplication.blocks.get(index);
+            outcome = block.getMerkleTree().findTransaction(hashTransaction);
+        }
+
+        return outcome;
     }
 }

@@ -21,11 +21,16 @@ public class Block implements Serializable{
     private BlockHeader blockHeader;
     private BlockBody blockBody;
     private String blockHash;
+    private MerkleTree merkleTree;
 
     public Block(String previousHash, List<TransactionInfo> transactionInfoList){
         this.blockHeader = new BlockHeader(previousHash,transactionInfoList);
         this.blockBody = new BlockBody(transactionInfoList);
         this.blockHash = this.generateBlockHash();
+        this.merkleTree = new MerkleTree(transactionInfoList);
+
+        if(merkleTree.getRoot()!=null)
+            blockHeader.setHashMerkleRoot(merkleTree.getRoot().getHash());
     }
 
     private String generateBlockHash(){

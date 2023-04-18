@@ -33,7 +33,5 @@ public class BlockHeader implements Serializable {
         for(TransactionInfo info : transactionInfoList){
             this.hashTransactionList.add(info.getHash());
         }
-
-        this.hashMerkleRoot = MerkleTree.getTreeRootHash(hashTransactionList);
     }
 }

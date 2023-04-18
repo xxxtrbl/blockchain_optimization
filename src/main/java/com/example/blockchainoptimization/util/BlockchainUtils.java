@@ -14,7 +14,7 @@ public class BlockchainUtils {
     public static boolean isBlockchainValid() throws Exception{
         ArrayList<Block> blocks = BlockchainoptimizationApplication.blocks;
 
-        for(int i= blocks.size()-1;i>0;i++){
+        for(int i= blocks.size()-1;i>0;i--){
             String curBlockHash = blocks.get(i).getBlockHeader().getHashPreviousBlock();
             String preBlockHash = blocks.get(i-1).getBlockHash();
 

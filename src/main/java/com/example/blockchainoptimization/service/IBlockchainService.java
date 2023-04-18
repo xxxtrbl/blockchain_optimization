@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IBlockchainService {
 
-    void addTransaction(Transaction transaction) throws Exception;
+    String addTransaction(Transaction transaction) throws Exception;
 
     TransactionInfo findTransactionSlowly(String hashTransaction) throws Exception;
 

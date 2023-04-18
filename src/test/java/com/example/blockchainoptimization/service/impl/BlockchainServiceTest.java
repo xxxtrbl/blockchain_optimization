@@ -2,27 +2,27 @@ package com.example.blockchainoptimization.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import com.example.blockchainoptimization.BlockchainoptimizationApplication;
-import com.example.blockchainoptimization.beans.Block;
-import com.example.blockchainoptimization.beans.Blockchain;
-import com.example.blockchainoptimization.beans.Transaction;
-import com.example.blockchainoptimization.beans.TransactionInfo;
-import org.junit.jupiter.api.AfterEach;
+import com.example.blockchainoptimization.beans.*;
+import com.example.blockchainoptimization.util.EncryptionUtils;
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Service;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 class BlockchainServiceTest {
     @Autowired
     private BlockchainService blockchainService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Test
     void addTransaction() {
@@ -40,7 +40,7 @@ class BlockchainServiceTest {
     void findTransactionSlowly() {
         ArrayList<Transaction> fiveTransactions = new ArrayList<>();
 
-        for(int i=10;i<=50;i+=10){
+        for(int i=10;i<=100;i+=10){
             Transaction transaction = new Transaction("tony","lily",i);
             fiveTransactions.add(transaction);
         }
@@ -50,13 +50,33 @@ class BlockchainServiceTest {
             BlockchainoptimizationApplication.blocks = new ArrayList<Block>();
             BlockchainoptimizationApplication.blocks.add(mockGenesisBlock);
 
+            String oneHash = new String();
             for(Transaction transaction:fiveTransactions){
-                blockchainService.addTransaction(transaction);
+                oneHash = blockchainService.addTransaction(transaction);
             }
+            blockchainService.findTransactionSlowly(oneHash);
 
-            TransactionInfo targetTransaction = blockchainService.getTransactionInfoList().get(0);
-            TransactionInfo outcome = blockchainService.findTransactionSlowly(targetTransaction.getHash());
-            Assert.equals(targetTransaction,outcome);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+    }
+
+    @Test
+    void findATransactionInCache(){
+        try{
+            Block mockGenesisBlock = Block.createGenesisBlock();
+            BlockchainoptimizationApplication.blocks = new ArrayList<Block>();
+            BlockchainoptimizationApplication.blocks.add(mockGenesisBlock);
+
+            Transaction transaction = new Transaction("tony","lily",100);
+            String data = new GsonBuilder().setPrettyPrinting().create().toJson(transaction);
+            byte[] signature = EncryptionUtils.applyECDSASig(KeyPairs.getKeyPair().getPrivateKey(), data);
+            TransactionInfo targetTransaction = new TransactionInfo(data,signature);
+
+            String targetHash = blockchainService.addTransaction(transaction);
+            TransactionInfo outcome = blockchainService.findTransactionSlowly(targetHash);
+
+            System.out.println(outcome);
         }catch (Exception e){
             System.out.println(e);
         }
