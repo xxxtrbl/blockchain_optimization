@@ -72,6 +72,10 @@ public final class RedisUtils {
         redisTemplate.opsForHash().putAll(key, hashMap);
     }
 
+    public long hsize(String key) throws Exception{
+        return redisTemplate.opsForHash().size(key);
+    }
+
     public Map<Object, Object> hmget(String key){
         return redisTemplate.opsForHash().entries(key);
     }

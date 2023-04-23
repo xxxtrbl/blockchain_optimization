@@ -5,12 +5,10 @@ import com.example.blockchainoptimization.beans.*;
 import com.example.blockchainoptimization.service.IBlockchainService;
 import com.example.blockchainoptimization.util.*;
 import com.google.gson.GsonBuilder;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,19 +16,18 @@ import java.util.List;
 @Slf4j
 @Service
 public class BlockchainService implements IBlockchainService {
-    @Getter
-    private List<TransactionInfo> transactionInfoList = new ArrayList<>();
+    public static List<TransactionInfo> transactionInfoList = new ArrayList<>();
     @Autowired
     private RedisUtils redisUtils;
 
     @Override
     public String addTransaction(Transaction transaction) throws Exception {
-
         String data = new GsonBuilder().setPrettyPrinting().create().toJson(transaction);
         byte[] signature = EncryptionUtils.applyECDSASig(KeyPairs.getKeyPair().getPrivateKey(), data);
         TransactionInfo transactionInfo = new TransactionInfo(data,signature);
         transactionInfoList.add(transactionInfo);
         log.info("Successfully added a transaction!");
+
 
         // [CACHE] Add into cache, which will be deleted after the block is added.
         redisUtils.hset("BLOCK",transactionInfo.getHash(), transactionInfo);
@@ -58,7 +55,7 @@ public class BlockchainService implements IBlockchainService {
         return transactionInfo.getHash();
     }
 
-    private void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
+    public void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
         if (BlockchainUtils.isBlockchainValid()){
             ArrayList<Block> blocks = BlockchainoptimizationApplication.blocks;
             int count = blocks.size();
@@ -90,9 +87,9 @@ public class BlockchainService implements IBlockchainService {
             Block currentBlock = BlockchainoptimizationApplication.blocks.get(i);
             List<TransactionInfo> infoList = currentBlock.getBlockBody().getTransactionInfoList();
             for(TransactionInfo info : infoList){
-                if(info.getHash() == hashTransaction){
+                if(info.getHash().equals(hashTransaction)){
                     outcome = info;
-                    break;
+                    return outcome;
                 }
             }
         }
@@ -109,19 +106,48 @@ public class BlockchainService implements IBlockchainService {
     @Override
     public TransactionInfo findTransactionFast(String hashTransaction) throws Exception {
         // Find in cache firstly.
-        Object object =  redisUtils.hget("BLOCK",hashTransaction);
-        TransactionInfo outcome = (TransactionInfo) object;
+        TransactionInfo outcome = (TransactionInfo) redisUtils.hget("BLOCK",hashTransaction);
 
         // Check out the timestamp, block index and find the target transaction.
         if(outcome == null){
-            Long timestamp = Double.doubleToLongBits(redisUtils.zGet("TRANSACTION",hashTransaction));
-            BSTNode node = BlockchainoptimizationApplication.indexTree.findNode(timestamp);
+            Long timestamp =  Math.round(redisUtils.zGet("TRANSACTION", hashTransaction));
+            int index = getNodeIndexFromTree(timestamp);
 
-            int index = node.getIndex();
             Block block = BlockchainoptimizationApplication.blocks.get(index);
+            MerkleTree tree = block.getMerkleTree();
             outcome = block.getMerkleTree().findTransaction(hashTransaction);
         }
 
         return outcome;
+    }
+
+    private int getNodeIndexFromTree(long timestamp){
+        int left = -1;
+        int right = -1;
+        BSTNode root = BlockchainoptimizationApplication.indexTree;
+
+        while(root!=null){
+            long curTimestamp = root.getTimestamp();
+            int curIndex = root.getIndex();
+
+            if(timestamp<curTimestamp){
+                right = curIndex;
+                root = root.getLeft();
+            }
+            else if(timestamp>curTimestamp){
+                left = curIndex;
+                root = root.getRight();
+            }
+            else{
+                left = right = curIndex;
+                break;
+            }
+        }
+
+        return left;
+    }
+
+    private TransactionInfo getTransactionFromTree(){
+        return null;
     }
 }

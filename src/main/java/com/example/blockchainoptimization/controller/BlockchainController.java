@@ -1,10 +1,12 @@
 package com.example.blockchainoptimization.controller;
 
+import cn.hutool.core.date.StopWatch;
 import com.example.blockchainoptimization.beans.Block;
 import com.example.blockchainoptimization.beans.Transaction;
 import com.example.blockchainoptimization.beans.TransactionInfo;
 import com.example.blockchainoptimization.service.impl.BlockchainService;
 import com.example.blockchainoptimization.service.impl.StatisticService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin
+@Slf4j
 public class BlockchainController {
     @Autowired
     private BlockchainService blockchainService;
@@ -31,10 +34,17 @@ public class BlockchainController {
         }
     }
 
-    @GetMapping("/find")
+    @GetMapping("/findSlowly")
     public ResponseEntity<Object> findTransactionByHash(@RequestParam("hash") String hash){
         try{
-            TransactionInfo outcome = blockchainService.findTransactionSlowly(hash);
+            StopWatch stopWatch = new StopWatch();
+
+            stopWatch.start();
+            TransactionInfo outcome = blockchainService.findTransactionFast(hash);
+            stopWatch.stop();
+
+            log.info("***************** Runtime of findTransactionSlowly() ***************");
+
             return new ResponseEntity<>(outcome, HttpStatus.OK);
         }catch (Exception e){
             return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);

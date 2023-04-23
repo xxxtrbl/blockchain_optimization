@@ -9,13 +9,6 @@ public class BSTNode {
     private BSTNode left;
     private BSTNode right;
 
-    public BSTNode(int index, long timestamp, BSTNode left, BSTNode right){
-        this.index = index;
-        this.timestamp = timestamp;
-        this.left = left;
-        this.right = right;
-    }
-
     public BSTNode(int index, long timestamp){
         this.index = index;
         this.timestamp = timestamp;
@@ -25,7 +18,7 @@ public class BSTNode {
 
     }
 
-    private int getHeight(){
+    public int getHeight(){
         int leftHeight = this.left==null?0:this.left.getHeight();
         int rightHeight = this.right==null?0:this.right.getHeight();
 
@@ -49,7 +42,7 @@ public class BSTNode {
     private void leftRotate(){
         BSTNode node = new BSTNode(this.index,this.timestamp);
         node.setLeft(this.left);
-        node.setRight(this.right);
+        node.setRight(this.right.getLeft());
         this.index = this.right.getIndex();
         this.timestamp = this.right.getTimestamp();
         this.setRight(this.right.right);
@@ -62,6 +55,7 @@ public class BSTNode {
         node.setLeft(this.left.getRight());
         this.index = this.left.getIndex();
         this.timestamp = this.left.getTimestamp();
+        this.setLeft(this.left.getLeft());
         this.setRight(node);
     }
 
@@ -97,8 +91,6 @@ public class BSTNode {
             }
 
             this.rightRotate();
-        } else{
-            return;
         }
     }
 

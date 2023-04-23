@@ -4,12 +4,11 @@ import com.example.blockchainoptimization.beans.BSTNode;
 import com.example.blockchainoptimization.beans.Block;
 import com.example.blockchainoptimization.beans.Blockchain;
 import com.example.blockchainoptimization.util.BlockchainUtils;
-import com.example.blockchainoptimization.util.RocksDBUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * @description: This project is responsible for the optimization of BLOCKCHAIN QUERY.
@@ -18,6 +17,7 @@ import java.util.Collections;
  * @author xiyuanwang
  */
 @SpringBootApplication
+@Slf4j
 public class BlockchainoptimizationApplication {
     public static ArrayList<Block> blocks = new ArrayList<>();
     public static BSTNode indexTree = new BSTNode();
@@ -31,12 +31,16 @@ public class BlockchainoptimizationApplication {
         blocks = BlockchainUtils.initBlockchain();
         Collections.reverse(blocks);
 
-        // initialize the blockchain index tree
-        BSTNode indexRoot = new BSTNode(0, blocks.get(0).getBlockHeader().getTimeStamp());
-        for(int i=1;i< blocks.size();i++){
-            BSTNode node = new BSTNode(i, blocks.get(i).getBlockHeader().getTimeStamp());
-            indexRoot.add(node);
+        // Initialize the blockchain index tree if not exists.
+        if(indexTree==null){
+            BSTNode indexRoot = new BSTNode(0, blocks.get(0).getBlockHeader().getTimeStamp());
+            for(int i=1;i< blocks.size();i++){
+                BSTNode node = new BSTNode(i, blocks.get(i).getBlockHeader().getTimeStamp());
+                indexRoot.add(node);
+            }
+            indexTree = indexRoot;
         }
-        indexTree = indexRoot;
     }
 }
+
+
