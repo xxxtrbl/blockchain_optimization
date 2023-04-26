@@ -1,8 +1,6 @@
 package com.example.blockchainoptimization;
 
-import com.example.blockchainoptimization.beans.BSTNode;
-import com.example.blockchainoptimization.beans.Block;
-import com.example.blockchainoptimization.beans.Blockchain;
+import com.example.blockchainoptimization.beans.*;
 import com.example.blockchainoptimization.util.BlockchainUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;

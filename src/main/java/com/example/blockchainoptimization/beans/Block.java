@@ -23,7 +23,7 @@ public class Block implements Serializable{
     private String blockHash;
     private MerkleTree merkleTree;
 
-    public Block(String previousHash, List<TransactionInfo> transactionInfoList){
+    public Block(String previousHash, ArrayList<TransactionInfo> transactionInfoList){
         this.blockHeader = new BlockHeader(previousHash,transactionInfoList);
         this.blockBody = new BlockBody(transactionInfoList);
         this.blockHash = this.generateBlockHash();
@@ -44,7 +44,7 @@ public class Block implements Serializable{
         byte[] signature = EncryptionUtils.applyECDSASig(KeyPairs.getKeyPair().getPrivateKey(), "This is a genesis block.");
         TransactionInfo info = new TransactionInfo(data, signature);
 
-        List<TransactionInfo> transactionInfoList = new ArrayList<TransactionInfo>();
+        ArrayList<TransactionInfo> transactionInfoList = new ArrayList<TransactionInfo>();
         transactionInfoList.add(info);
 
         return new Block(String.valueOf(0),transactionInfoList);

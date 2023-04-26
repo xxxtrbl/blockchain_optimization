@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class BlockchainService implements IBlockchainService {
-    public static List<TransactionInfo> transactionInfoList = new ArrayList<>();
+    public static ArrayList<TransactionInfo> transactionInfoList = new ArrayList<>();
     @Autowired
     private RedisUtils redisUtils;
 
@@ -37,7 +37,7 @@ public class BlockchainService implements IBlockchainService {
 
         // Add block.
         if (transactionInfoList.size() == 5){
-            List<TransactionInfo> transactionInfos = new ArrayList<>(transactionInfoList);
+            ArrayList<TransactionInfo> transactionInfos = new ArrayList<>(transactionInfoList);
             addBlock(transactionInfos);
 
             // [INDEX] Add into indexTree.
@@ -55,7 +55,7 @@ public class BlockchainService implements IBlockchainService {
         return transactionInfo.getHash();
     }
 
-    public void addBlock(List<TransactionInfo> transactionInfoList) throws Exception {
+    public void addBlock(ArrayList<TransactionInfo> transactionInfoList) throws Exception {
         if (BlockchainUtils.isBlockchainValid()){
             ArrayList<Block> blocks = BlockchainoptimizationApplication.blocks;
             int count = blocks.size();
@@ -110,11 +110,15 @@ public class BlockchainService implements IBlockchainService {
 
         // Check out the timestamp, block index and find the target transaction.
         if(outcome == null){
-            Long timestamp =  Math.round(redisUtils.zGet("TRANSACTION", hashTransaction));
+            Double d_timestamp = redisUtils.zGet("TRANSACTION", hashTransaction);
+            if(d_timestamp==null){
+                return null;
+            }
+
+            Long timestamp =  Math.round(d_timestamp);
             int index = getNodeIndexFromTree(timestamp);
 
             Block block = BlockchainoptimizationApplication.blocks.get(index);
-            MerkleTree tree = block.getMerkleTree();
             outcome = block.getMerkleTree().findTransaction(hashTransaction);
         }
 
@@ -144,10 +148,6 @@ public class BlockchainService implements IBlockchainService {
             }
         }
 
-        return left;
-    }
-
-    private TransactionInfo getTransactionFromTree(){
-        return null;
+        return right;
     }
 }

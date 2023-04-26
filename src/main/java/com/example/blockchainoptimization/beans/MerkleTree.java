@@ -18,31 +18,29 @@ public class MerkleTree implements Serializable {
     @Serial
     private static final long serialVersionUID = 2855342716633101459L;
     private Node root;
-    private List<TransactionInfo> transactions;
-    public MerkleTree(List<TransactionInfo> transactionInfoArrayList){
-        this.transactions = transactionInfoArrayList;
-        constructTree();
+
+    public MerkleTree(ArrayList<TransactionInfo> transactionInfoArrayList){
+        constructTree(transactionInfoArrayList);
     }
 
-    private void constructTree(){
+    private void constructTree(ArrayList<TransactionInfo> transactions){
         if(transactions == null || transactions.size()==0){
             throw new RuntimeException("Nothing to construct a merkle tree.");
         }
 
-        ArrayList<Node> parents = bottomLevel();
+        ArrayList<Node> parents = bottomLevel(transactions);
         while(parents.size() > 1){
             parents = internalLevel(parents);
         }
 
-        if(parents.size()>0)
-            root = parents.get(0);
+        root = parents.get(0);
     }
 
-    private ArrayList<Node> bottomLevel(){
+    private ArrayList<Node> bottomLevel(ArrayList<TransactionInfo> transactions){
         ArrayList<Node> parents = new ArrayList<>();
         int size = transactions.size();
 
-        for(int i=0;i<size - 1;i+=2){
+        for(int i=0;i<size-1;i+=2){
             Node leaf1 = new Node(transactions.get(i).getHash());
             leaf1.isLeafNode = 1;
             leaf1.transaction = transactions.get(i);
@@ -55,9 +53,11 @@ public class MerkleTree implements Serializable {
             parents.add(parent);
         }
 
-        if(size%2!=0){
-            Node lastParent = new Node(transactions.get(size-1).getHash());
-            lastParent.isLeafNode = 1;
+        if(size % 2 != 0){
+            Node leaf = new Node(transactions.get(size-1).getHash());
+            leaf.isLeafNode = 1;
+            leaf.transaction = transactions.get(size-1);
+            Node lastParent = constructParentNode(leaf,null);
             parents.add(lastParent);
         }
 
@@ -112,11 +112,36 @@ public class MerkleTree implements Serializable {
             }
         }else {
             filters.add(node.getHash());
-            return;
         }
     }
 
     public TransactionInfo findTransaction(String hash){
+        if(this.root==null || hash==null){
+            return null;
+        }
+
+        TransactionInfo outcome = searchTree(root, hash);
+
+        return outcome;
+    }
+
+    private TransactionInfo searchTree(Node node, String hash){
+        if(node.getLeft()!=null && node.getLeft().getBloomFilter()!=null && node.getLeft().getBloomFilter().contains(hash)){
+            return searchTree(node.getLeft(), hash);
+        }
+
+        if(node.getRight() != null && node.getRight().getBloomFilter()!=null && node.getRight().getBloomFilter().contains(hash)){
+            return searchTree(node.getRight(), hash);
+        }
+
+        if(node.getLeft()!=null && node.getLeft().isLeafNode==1 && node.getLeft().getHash().equals(hash)){
+            return node.getLeft().getTransaction();
+        }
+
+        if(node.getRight()!=null && node.getRight().isLeafNode==1 && node.getRight().getHash().equals(hash)){
+            return node.getRight().getTransaction();
+        }
+
         return null;
     }
 
@@ -140,11 +165,6 @@ public class MerkleTree implements Serializable {
             for(String transactionHash : transactionHashes){
                 bloomFilter.add(transactionHash);
             }
-        }
-
-        private void addFilter(String transactionHash){
-            bloomFilter = new BloomFilter(1000);
-            bloomFilter.add(transactionHash);
         }
     }
 

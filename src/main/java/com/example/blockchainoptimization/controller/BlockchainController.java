@@ -1,9 +1,7 @@
 package com.example.blockchainoptimization.controller;
 
 import cn.hutool.core.date.StopWatch;
-import com.example.blockchainoptimization.beans.Block;
-import com.example.blockchainoptimization.beans.Transaction;
-import com.example.blockchainoptimization.beans.TransactionInfo;
+import com.example.blockchainoptimization.beans.*;
 import com.example.blockchainoptimization.service.impl.BlockchainService;
 import com.example.blockchainoptimization.service.impl.StatisticService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +38,36 @@ public class BlockchainController {
             StopWatch stopWatch = new StopWatch();
 
             stopWatch.start();
+            TransactionInfo outcome = blockchainService.findTransactionSlowly(hash);
+            stopWatch.stop();
+
+            log.info("***************** Runtime of findTransactionSlowly() "+ stopWatch.getTotalTimeMillis()+
+                    " *****************");
+
+            if(outcome==null){
+                return new ResponseEntity<>(outcome, HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(outcome, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/findFast")
+    public ResponseEntity<Object> findTransactionByHashWithCache(@RequestParam("hash") String hash){
+        try{
+            StopWatch stopWatch = new StopWatch();
+
+            stopWatch.start();
             TransactionInfo outcome = blockchainService.findTransactionFast(hash);
             stopWatch.stop();
 
-            log.info("***************** Runtime of findTransactionSlowly() ***************");
+            log.info("***************** Runtime of findTransactionFast() "+ stopWatch.getTotalTimeMillis()+
+                    " *****************");
+            if(outcome==null){
+                return new ResponseEntity<>(outcome, HttpStatus.NO_CONTENT);
+            }
 
             return new ResponseEntity<>(outcome, HttpStatus.OK);
         }catch (Exception e){
@@ -56,6 +80,7 @@ public class BlockchainController {
         try{
             List<TransactionInfo> outcome = statisticService.getLatestTransactions();
             Collections.reverse(outcome);
+            outcome = outcome.subList(0,5);
             return new ResponseEntity<>(outcome, HttpStatus.OK);
         } catch (Exception e){
             return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
@@ -65,7 +90,7 @@ public class BlockchainController {
     @GetMapping("/latestBlocks")
     public ResponseEntity<Object> getLatestBlocks(){
         try{
-            List<Block> blocks = statisticService.getLatestBlocks();
+            List<BlockInfo> blocks = statisticService.getLatestBlocks();
             Collections.reverse(blocks);
             return new ResponseEntity<>(blocks, HttpStatus.OK);
         } catch (Exception e) {
@@ -73,15 +98,23 @@ public class BlockchainController {
         }
     }
 
-    @GetMapping("/dailyTransactionCount")
-    public ResponseEntity<Object> getDailyTransactionCount(){
-
-        return null;
+    @GetMapping("/statistic")
+    public ResponseEntity<Object> getStatisticData(){
+        try{
+            Statistics outcome = statisticService.getStatistics();
+            return new ResponseEntity<>(outcome, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/totalTransactionCount")
-    public ResponseEntity<Object> getTotalTransactionCount(){
-
-        return null;
+    @GetMapping("/weeklyData")
+    public ResponseEntity<Object> getWeeklyData(){
+        try{
+            List<WeeklyData> outcome = statisticService.getWeeklyTransactions();
+            return new ResponseEntity<>(outcome, HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -27,7 +27,7 @@ public class OperationsBeforeStart {
 
     private void generateIndexTree(){
         List<EasyNode> nodes = (ArrayList<EasyNode>) redisUtils.get("NEWINDEX");
-        if(nodes.size()<=0){
+        if(nodes==null || nodes.size()<=0){
             return;
         }
 

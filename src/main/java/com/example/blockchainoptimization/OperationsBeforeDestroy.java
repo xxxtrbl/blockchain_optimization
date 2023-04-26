@@ -35,7 +35,7 @@ public class OperationsBeforeDestroy {
         List<TransactionInfo> transactionInfoList = blockchainService.transactionInfoList;
         if(transactionInfoList.size()>0){
             // Add into a new block.
-            List<TransactionInfo> transactionInfos = new ArrayList<>(transactionInfoList);
+            ArrayList<TransactionInfo> transactionInfos = new ArrayList<>(transactionInfoList);
             blockchainService.addBlock(transactionInfos);
             log.info("Added left transactions into a new block.");
 
@@ -96,7 +96,7 @@ public class OperationsBeforeDestroy {
                 nodeQueue.add(right);
 
             EasyNode e_left = left==null?new EasyNode(12434,-1):new EasyNode(left.getTimestamp(), left.getIndex());
-            EasyNode e_right = left==null?new EasyNode(12343,-1):new EasyNode(right.getTimestamp(), right.getIndex());
+            EasyNode e_right = right==null?new EasyNode(12343,-1):new EasyNode(right.getTimestamp(), right.getIndex());
 
             indexArray.add(i*2+1,e_left);
             indexArray.add(2*(i+1), e_right);
