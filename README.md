@@ -14,7 +14,9 @@ The digital signature of block contents, along with adding a timestamp imprint, 
 ![block](pics/block.svg)<br/>
 A Block consists of BlockHeader, BlockBody, and BlockHash. <br/>
 BlockHeader represents the header of the block, which contains PreviousHash pointing to the parent block, thus linking all blocks. Nonce (The random number) in it is related to data mining. Since this project does not involve this aspect, this variable is hidden. <br/>
+<br/>
 BlockHeader also includes a list of transaction hashes TransactionList of all transactions in the block, stored in order. In addition, the header also contains the hash value of the Merkle tree root, which can be used to check whether the data in the block has been tampered with.<br/>
+<br/>
 BlockBody refers to the body of the block, which contains the corresponding transaction content for that block. BlockHash refers to the hash value of the block, which changes with changes in the block content. It is computed based on BlockHeader and BlockBody using the SHA256 algorithm.
 #### Storage layer (databse) design
 In blockchain applications, many systems use key-value pair-based file systems to store their data states. Because key-value pair databases often have efficient query processing performance, systems like Hyperledger Fabric and Ethereum employ key-value pair databases to store their data. Common blockchain key-value pair storage systems include LevelDB, RocksDB, and others.<br/>
