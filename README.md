@@ -16,6 +16,7 @@ The digital signature of block contents, along with adding a timestamp imprint, 
 **Application layer**：The application layer mainly includes applications for users to transmit data (data on-chain) and perform data queries (such as blockchain traceability and information retrieval).<br/>
 ### Traditional Blockchain Storage Method
 #### Data layer (block) design
+<img width="500" alt="blocksearch" src="pics/block.svg">
 A Block consists of BlockHeader, BlockBody, and BlockHash. <br/>
 BlockHeader represents the header of the block, which contains PreviousHash pointing to the parent block, thus linking all blocks. Nonce (The random number) in it is related to data mining. Since this project does not involve this aspect, this variable is hidden. <br/>
 <br/>
@@ -27,7 +28,7 @@ In blockchain applications, many systems use key-value pair-based file systems t
 
 RocksDB, like LevelDB, is an embedded NoSQL database. Unlike common standalone databases like MySQL or Oracle that require separate processes for deployment and startup, these databases run in the same process as blockchain nodes, starting and stopping concurrently. Users do not perceive their presence because they operate as dynamic or static dependent libraries. RocksDB is an optimized version of LevelDB, maintained by Facebook and open-source. It offers significant improvements in read and write performance compared to LevelDB. Therefore, RocksDB is used as the storage layer in this project.
 ### Traditional blockchain query method
-
+<img width="500" alt="blocksearch" src="pics/oldArchitecture.png">
 The diagram illustrates the structure of a blockchain. A blockchain is a linked list-like structure composed of blocks connected by hash values. The current indexing structure of the blockchain supports only relatively simple queries and only supports queries based on the unique identifier, the hash value.<br/>
 
 In the linked list structure of the blockchain, querying a particular data in the worst-case scenario requires traversing the entire chain of blocks to find it, while in the best-case scenario, accessing the latest block is sufficient for the query. Therefore, its time complexity is O(N), where N is the number of blocks.<br/>
