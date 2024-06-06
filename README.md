@@ -1,49 +1,39 @@
-# 区块链存储性能优化
-## 详细思路
-本项目的重点在于优化区块链底层结构，故移除了区块链的共识层，专注于区块链的底层设计和优化。区块链本质上是一款分布式的数据库，我们这里不实现"分布式"，只聚焦于数据存储部分。
-## 一、 传统区块链系统
-### 传统区块链架构
-如图所示为不完整的传统区块链架构，本项目移除了共识层，聚焦于区块链系统的底层结构。
-![traditional architecture](pics/oldArchitecture.png)
-**存储层**：存储层主要用来存储和交易相关的内容。本项目使用RocksDB来存储区块的数据、交易内容。<br/>
-**数据层**：数据层主要用于处理交易中的各类数据，如将数据打包成区块，将区块维护成链式结构，区块中内容的加密和哈希计算，
-区块内容的数字签名以及增加时间戳印记，将交易数据构建成Merkle树，并计算Merkle树根节点的哈希值等。<br/>
-**网络层**：网络层主要提供共识达成以及数据通信的底层支持，在区块链中，每个节点既是数据的发送方，
-又是数据的接收方。在本项目中，我们忽略区块链网络中结点间的通信，聚焦于区块链的底层结构，从而使项目的结构更加清晰、有条理。<br/>
-**应用层**：应用层主要包括用户传送数据（数据上链）和数据查询（区块链溯源、信息查询等）的应用。
-### 传统区块链存储方法
-#### 数据层（区块）设计
+# Design and Implementation of Blockchain Access Optimization Based on Caching Mechanism
+## Thinking
+The focus of this project is to optimize the underlying structure of the blockchain. Therefore, the consensus layer of the blockchain has been removed, with a focus solely on the design and optimization of the blockchain's underlying architecture. Here, we are not implementing "distributed" but instead concentrating solely on the data storage aspect.
+## 1. Traditional Blockchain System
+### Traditional Blockchain Architecture
+As shown in the diagram, the incomplete traditional blockchain architecture has its consensus layer removed in this project, focusing solely on the underlying structure of the blockchain system. ![traditional architecture](pics/oldArchitecture.png)
+**Storage Layer**：The storage layer is primarily used for storing content related to transactions. In this project, RocksDB is employed to store the data of blocks and transaction content.<br/>
+**Data Layer**：The data layer is mainly responsible for handling various types of data in transactions, such as packaging data into blocks, maintaining blocks in a chained structure, and performing encryption and hashing calculations on the contents of blocks.
+The digital signature of block contents, along with adding a timestamp imprint, involves constructing transaction data into a Merkle tree and computing the hash value of the Merkle tree root node, among other tasks.<br/>
+**Internet Layer**：The network layer primarily provides the underlying support for achieving consensus and data communication. In a blockchain, each node serves as both the sender and receiver of data. In this project, we disregard communication between nodes in the blockchain network and focus solely on the underlying structure of the blockchain, thus making the project's structure clearer and more organized.<br/>
+**Application layer**：The application layer mainly includes applications for users to transmit data (data on-chain) and perform data queries (such as blockchain traceability and information retrieval).
+### Traditional Blockchain Storage Method
+#### Data layer (block) design
 ![block](pics/block.svg)<br/>
-区块（Block）由BlockHeader, BlockBody 和 BlockHash组成。其中，BlockHeader表示区块头，区块头
-中包含着指向父区块的PreviousHash,从而链接各区块。而其中的随机数(Nonce)和数据挖掘有关，由于本项目并不涉及到
-这方面的内容，于是隐去该变量。BlockHeader中还包括区块中所有交易的Hash列表TransactionList，按照顺序存放。
-除此之外，header里还存有Merkle树根的hash值，利用该哈希值可以检查区块内是否有数据被篡改。
-BlockBody指的是区块body, 存放着该区块中对应的交易内容。BlockHash 指的是区块的哈希值，
-其随着区块内容的改变而改变，由BlockHeader和BlockBody根据SHA256计算得到。
-#### 存储层（数据库）设计
-在区块链的应用中, 许多系统采用基于键值对的文件系统存储其数据状态.由于基于键值对的数据库往往具有比较高效的查询处理性能, 
-Hyperledger Fabric, Ethereum均采用键值对数据库存储其数据.比较常见的区块链键值对存储系统包括LevelDB, RocksDB等。
-RocksDB和LevelDB一样是嵌入式的NoSQL数据库，不像常见的独立式数据库如MySQL、Oracle需要独立的进程来单独部署和启停，
-这种数据库以动态依赖库或静态依赖库的方式和区块链节点运行在同一个进程中，同时启停，用户不会感受到它们的存在。
-而RocksDB优化自LevelDB，开源且由fackbook维护，相比于LevelDB有较明显的读写性能提升。因此本项目中使用RocksDB作为区块链的存储层。
-### 传统区块链查询方法
+A Block consists of BlockHeader, BlockBody, and BlockHash. BlockHeader represents the header of the block, which contains PreviousHash pointing to the parent block, thus linking all blocks. Nonce (The random number) in it is related to data mining. Since this project does not involve this aspect, this variable is hidden. BlockHeader also includes a list of transaction hashes TransactionList of all transactions in the block, stored in order. In addition, the header also contains the hash value of the Merkle tree root, which can be used to check whether the data in the block has been tampered with.
+BlockBody refers to the body of the block, which contains the corresponding transaction content for that block. BlockHash refers to the hash value of the block, which changes with changes in the block content. It is computed based on BlockHeader and BlockBody using the SHA256 algorithm.
+#### Storage layer (databse) design
+In blockchain applications, many systems use key-value pair-based file systems to store their data states. Because key-value pair databases often have efficient query processing performance, systems like Hyperledger Fabric and Ethereum employ key-value pair databases to store their data. Common blockchain key-value pair storage systems include LevelDB, RocksDB, and others.
+RocksDB, like LevelDB, is an embedded NoSQL database. Unlike common standalone databases like MySQL or Oracle that require separate processes for deployment and startup, these databases run in the same process as blockchain nodes, starting and stopping concurrently. Users do not perceive their presence because they operate as dynamic or static dependent libraries. RocksDB is an optimized version of LevelDB, maintained by Facebook and open-source. It offers significant improvements in read and write performance compared to LevelDB. Therefore, RocksDB is used as the storage layer in this project.
+### Traditional blockchain query method
 ![blocksearch](pics/blockchain.png)<br/>
-如图为区块链结构。区块链是由区块的hash值相链接在一起的一种类似于链表的结构。当前的区块链索引结构只支持相对简单的查询，并且只支持基于唯一标识的Hash值的查询。
-在区块链的链表结构中的查询某一数据最坏情况需要遍历整条区块链的数据才能查询到，最优的情况只需要访问最新区块就可以查到。故其时间复杂度为O(N)，其中N为区块数量。
-找到区块后需要遍历区块体中Merkle树的叶子结点。
-### 加密算法
-#### SHA256 算法
-SHA（Secure Hash Algorithm）安全散列算法，这种算法的特点是数据的少量更改会在Hash值中产生不可预知的大量更改，hash值用作表示大量数据的固定大小的唯一值，
-而SHA256算法的hash值大小为256位。之所以选用SHA256是因为它的大小正合适，一方面产生重复hash值的可能性很小，另一方面在区块链实际应用过程中，有可能会产生大
-量的区块，而使得信息量很大，那么256位的大小就比较恰当了。
-#### 椭圆曲线数字签名算法 ECDSA
-在本应用的交易过程中，利用椭圆曲线算法对数字签名进行加密和解密。
-> 椭圆曲线数字签名算法（英语：Elliptic Curve Digital Signature Algorithm，缩写作 ECDSA）是一种基于椭圆曲线密码学的公开金钥加密算法。1985年，Koblitz
-和Miller把数字签名算法移植到椭圆曲线上，椭圆曲线数字签名算法由此诞生。
-## 二、 存储优化
-### 缓存层
-### 缓存策略
-1. 缓存提交数据
-用户从提交数据到数据上链需要一段时间，所以缓存用来存储用户提交的数据，数据上链成功后再将数据从缓存中释放。
-2. 缓存查询数据
+The diagram illustrates the structure of a blockchain. A blockchain is a linked list-like structure composed of blocks connected by hash values. The current indexing structure of the blockchain supports only relatively simple queries and only supports queries based on the unique identifier, the hash value.
+
+In the linked list structure of the blockchain, querying a particular data in the worst-case scenario requires traversing the entire chain of blocks to find it, while in the best-case scenario, accessing the latest block is sufficient for the query. Therefore, its time complexity is O(N), where N is the number of blocks.
+
+After finding the block, it is necessary to traverse the leaf nodes of the Merkle tree in the block body.
+### Encryption Algorithm
+#### SHA256 Algorithm
+SHA（Secure Hash Algorithm）The characteristic of this algorithm is that a small change in data will result in an unpredictable large change in the hash value. The hash value is used to represent a fixed-size unique value for a large amount of data, and the size of the hash value for the SHA256 algorithm is 256 bits. The reason for choosing SHA256 is because its size is just right. On one hand, the probability of generating duplicate hash values is very low, and on the other hand, in the actual application process of blockchain, a large number of blocks may be generated, resulting in a large amount of information. Therefore, a size of 256 bits is appropriate.
+#### ECDSA
+In the transaction process of this application, the Elliptic Curve algorithm is utilized for encrypting and decrypting digital signatures.
+> The Elliptic Curve Digital Signature Algorithm (ECDSA) is a public-key encryption algorithm based on elliptic curve cryptography. In 1985, Koblitz and Miller transplanted the digital signature algorithm to elliptic curves, thus giving birth to the Elliptic Curve Digital Signature Algorithm.
+## 二、 Storage optimization
+### Storage layer
+### Storage strategy
+1. Cache submitted data
+Users need some time for data submission to be added to the blockchain. Therefore, caching is used to store the data submitted by users. Once the data is successfully added to the blockchain, it is released from the cache.
+2. Cache query data
 
